@@ -1,5 +1,4 @@
 <?php
-
 /**
  * User type.
  */
@@ -10,13 +9,15 @@ use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class TaskType.
+ * Class UserType.
  */
-class TaskType extends AbstractType
+class UserType extends AbstractType
 {
     /**
      * Builds the form.
@@ -32,25 +33,30 @@ class TaskType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add(
-            'title',
+            'firstName',
             TextType::class,
             [
-                'label' => 'label.title',
+                'label' => 'label.firstName',
                 'required' => true,
                 'attr' => ['max_length' => 255],
             ]
         );
         $builder->add(
-            'category',
-            EntityType::class,
+            'email',
+            EmailType::class,
             [
-                'class' => Category::class,
-                'choice_label' => function ($category) {
-                    return $category->getTitle();
-                },
-                'label' => 'label.category',
-                'placeholder' => 'label.none',
+                'label' => 'label.email',
                 'required' => true,
+                'attr' => ['max_length' => 128],
+            ]
+        );
+        $builder->add(
+            'password',
+            PasswordType::class,
+            [
+                'label' => 'label.password',
+                'required' => true,
+                'attr' => ['max_length' => 128],
             ]
         );
     }
@@ -62,7 +68,7 @@ class TaskType extends AbstractType
      */
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => Task::class]);
+        $resolver->setDefaults(['data_class' => User::class]);
     }
 
     /**
@@ -75,6 +81,6 @@ class TaskType extends AbstractType
      */
     public function getBlockPrefix(): string
     {
-        return 'task';
+        return 'user';
     }
 }
