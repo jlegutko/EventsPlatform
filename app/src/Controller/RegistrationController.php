@@ -8,7 +8,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\UserType;
-use App\Repository\RegistrationRepository;
+use App\Repository\UserRepository;
 use DateTime;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +17,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Doctrine\ORM\ORMException;
+use Doctrine\ORM\OptimisticLockException;
+use \Exception;
 
 /**
  * Class RegistrationController.
@@ -26,18 +29,18 @@ class RegistrationController extends AbstractController
     /**
      * Index action.
      *
-     * @param \Symfony\Component\HttpFoundation\Request $request HTTP request
-     * @param \App\Repository\RegistrationRepository $repository Repository
-     * @param \Knp\Component\Pager\PaginatorInterface $paginator Paginator
+     * @param Request            $request    HTTP request
+     * @param UserRepository     $repository Repository
+     * @param PaginatorInterface $paginator  Paginator
      *
-     * @return \Symfony\Component\HttpFoundation\Response HTTP response
+     * @return Response HTTP response
      *
      * @Route(
      *     "/users",
      *     name="user_index",
      * )
      */
-    public function index(Request $request, RegistrationRepository $repository, PaginatorInterface $paginator): Response
+    public function index(Request $request, UserRepository $repository, PaginatorInterface $paginator): Response
     {
         $pagination = $paginator->paginate(
             $repository->queryAll(),
@@ -54,9 +57,9 @@ class RegistrationController extends AbstractController
     /**
      * View action.
      *
-     * @param \App\Entity\User $user User entity
+     * @param User $user User entity
      *
-     * @return \Symfony\Component\HttpFoundation\Response HTTP response
+     * @return Response HTTP response
      *
      * @Route(
      *     "/users/{id}",
@@ -75,21 +78,23 @@ class RegistrationController extends AbstractController
     /**
      * New action.
      *
-     * @param \Symfony\Component\HttpFoundation\Request $request HTTP request
-     * @param \App\Repository\RegistrationRepository $repository User repository
+     * @param Request                      $request         HTTP request
+     * @param UserRepository               $repository      User repository
+     * @param UserPasswordEncoderInterface $passwordEncoder
      *
-     * @return \Symfony\Component\HttpFoundation\Response HTTP response
+     * @return Response HTTP response
      *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws Exception
      *
      * @Route(
-     *     "/registration",
+     *     "/register",
      *     methods={"GET", "POST"},
      *     name="user_new",
      * )
      */
-    public function new(Request $request, RegistrationRepository $repository, UserPasswordEncoderInterface $passwordEncoder): Response
+    public function new(Request $request, UserRepository $repository, UserPasswordEncoderInterface $passwordEncoder): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -118,14 +123,14 @@ class RegistrationController extends AbstractController
     /**
      * Edit action.
      *
-     * @param \Symfony\Component\HttpFoundation\Request $request HTTP request
-     * @param \App\Entity\User $user User entity
-     * @param \App\Repository\RegistrationRepository $repository User repository
+     * @param Request        $request    HTTP request
+     * @param User           $user       User entity
+     * @param UserRepository $repository User repository
      *
-     * @return \Symfony\Component\HttpFoundation\Response HTTP response
+     * @return Response HTTP response
      *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws ORMException
+     * @throws OptimisticLockException
      *
      * @Route(
      *     "/users/{id}/edit",
@@ -134,7 +139,7 @@ class RegistrationController extends AbstractController
      *     name="user_edit",
      * )
      */
-    public function edit(Request $request, User $user, RegistrationRepository $repository): Response
+    public function edit(Request $request, User $user, UserRepository $repository): Response
     {
         $form = $this->createForm(UserType::class, $user, ['method' => 'PUT']);
         $form->handleRequest($request);
@@ -148,7 +153,7 @@ class RegistrationController extends AbstractController
         }
 
         return $this->render(
-            'user/edit.html.twig',
+            'registration/edit.html.twig',
             [
                 'form' => $form->createView(),
                 'user' => $user,
@@ -159,14 +164,14 @@ class RegistrationController extends AbstractController
     /**
      * Change password action.
      *
-     * @param \Symfony\Component\HttpFoundation\Request $request HTTP request
-     * @param \App\Entity\User $user User entity
-     * @param \App\Repository\RegistrationRepository $repository User repository
+     * @param Request        $request    HTTP request
+     * @param User           $user       User entity
+     * @param UserRepository $repository User repository
      *
-     * @return \Symfony\Component\HttpFoundation\Response HTTP response
+     * @return Response HTTP response
      *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws ORMException
+     * @throws OptimisticLockException
      *
      * @Route(
      *     "/users/{id}/change_pswd",
@@ -175,7 +180,7 @@ class RegistrationController extends AbstractController
      *     name="user_change_pswd",
      * )
      */
-//    public function change_pswd(Request $request, User $user, RegistrationRepository $repository, UserPasswordEncoderInterface $passwordEncoder): Response
+//    public function change_pswd(Request $request, User $user, UserRepository $repository, UserPasswordEncoderInterface $passwordEncoder): Response
 //    {
 //        $form = $this->createForm(ChangePasswordType::class, $user, ['method' => 'put']);
 //        $form->handleRequest($request);
@@ -199,14 +204,14 @@ class RegistrationController extends AbstractController
     /**
      * Delete action.
      *
-     * @param \Symfony\Component\HttpFoundation\Request $request HTTP request
-     * @param \App\Entity\User $user User entity
-     * @param \App\Repository\RegistrationRepository $repository User repository
+     * @param Request        $request    HTTP request
+     * @param User           $user       User entity
+     * @param UserRepository $repository User repository
      *
-     * @return \Symfony\Component\HttpFoundation\Response HTTP response
+     * @return Response HTTP response
      *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws ORMException
+     * @throws OptimisticLockException
      *
      * @Route(
      *     "/users/{id}/delete",
@@ -215,7 +220,7 @@ class RegistrationController extends AbstractController
      *     name="user_delete",
      * )
      */
-    public function delete(Request $request, User $user, RegistrationRepository $repository): Response
+    public function delete(Request $request, User $user, UserRepository $repository): Response
     {
         $form = $this->createForm(FormType::class, $user, ['method' => 'DELETE']);
         $form->handleRequest($request);
@@ -232,7 +237,7 @@ class RegistrationController extends AbstractController
         }
 
         return $this->render(
-            'user/delete.html.twig',
+            'registration/delete.html.twig',
             [
                 'form' => $form->createView(),
                 'user' => $user,

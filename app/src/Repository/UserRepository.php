@@ -1,9 +1,14 @@
 <?php
-
+/**
+ User repository.
+ */
 namespace App\Repository;
 
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -21,6 +26,56 @@ class UserRepository extends ServiceEntityRepository
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, User::class);
+    }
+    /**
+     * Query all records.
+     *
+     * @return QueryBuilder Query builder
+     */
+    public function queryAll(): QueryBuilder
+    {
+        return $this->getOrCreateQueryBuilder()
+            ->orderBy('t.updatedAt', 'DESC');
+    }
+
+    /**
+     * Save record.
+     *
+     * @param User $user User entity
+     *
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    public function save(User $user): void
+    {
+        $this->_em->persist($user);
+        $this->_em->flush($user);
+    }
+
+    /**
+     * Delete record.
+     *
+     * @param User $user User entity
+     *
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    public function delete(User $user): void
+    {
+        $this->_em->remove($user);
+        $this->_em->flush($user);
+    }
+
+    /**
+     * Get or create new query builder.
+     *
+     * @param QueryBuilder|null $queryBuilder Query builder
+     *
+     * @return QueryBuilder Query builder
+     */
+    private function getOrCreateQueryBuilder(QueryBuilder $queryBuilder = null): QueryBuilder
+    {
+        return $queryBuilder ?: $this->createQueryBuilder('t');
     }
     // /**
     //  * @return User[] Returns an array of User objects
