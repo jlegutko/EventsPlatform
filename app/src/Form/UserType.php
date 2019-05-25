@@ -11,6 +11,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -52,11 +53,14 @@ class UserType extends AbstractType
         );
         $builder->add(
             'password',
-            PasswordType::class,
+            RepeatedType::class,
             [
-                'label' => 'label.password',
+                'type' => PasswordType::class,
+                'invalid_message' => 'message.invalid.passwords.',
+                'first_options' => ['label' => 'label.password'],
+                'second_options' => ['label' => 'label.repeat.password'],
                 'required' => true,
-                'attr' => ['max_length' => 128],
+                'attr' => ['max_length' => 255],
             ]
         );
     }

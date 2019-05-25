@@ -9,12 +9,14 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\RegistrationRepository;
+use DateTime;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * Class RegistrationController.
@@ -87,13 +89,19 @@ class RegistrationController extends AbstractController
      *     name="user_new",
      * )
      */
-    public function new(Request $request, RegistrationRepository $repository): Response
+    public function new(Request $request, RegistrationRepository $repository, UserPasswordEncoderInterface $passwordEncoder): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $user->setCreatedAt(new DateTime());
+            $user->setUpdatedAt(new DateTime());
+            $password = $user->getPassword();
+            $user->setRoles(['ROLE_USER']);
+            $password = $passwordEncoder->encodePassword($user, $password);
+            $user->setPassword($password);
             $repository->save($user);
 
             $this->addFlash('success', 'message.created_successfully');
@@ -148,6 +156,46 @@ class RegistrationController extends AbstractController
         );
     }
 
+    /**
+     * Change password action.
+     *
+     * @param \Symfony\Component\HttpFoundation\Request $request HTTP request
+     * @param \App\Entity\User $user User entity
+     * @param \App\Repository\RegistrationRepository $repository User repository
+     *
+     * @return \Symfony\Component\HttpFoundation\Response HTTP response
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     *
+     * @Route(
+     *     "/users/{id}/change_pswd",
+     *     methods={"GET", "PUT"},
+     *     requirements={"id": "[1-9]\d*"},
+     *     name="user_change_pswd",
+     * )
+     */
+//    public function change_pswd(Request $request, User $user, RegistrationRepository $repository, UserPasswordEncoderInterface $passwordEncoder): Response
+//    {
+//        $form = $this->createForm(ChangePasswordType::class, $user, ['method' => 'put']);
+//        $form->handleRequest($request);
+//        if ($form->isSubmitted() && $form->isValid()) {
+//            $user->setUpdatedAt(new DateTime());
+//            $password = $user->getPassword();
+//            $password = $passwordEncoder->encodePassword($user, $password);
+//            $user->setPassword($password);
+//            $repository->save($user);
+//            $this->addFlash('success', 'message.updated_successfully');
+//            return $this->redirectToRoute('dashboard');
+//        }
+//        return $this->render(
+//            'user/change_pswd.html.twig',
+//            [
+//                'form' => $form->createView(),
+//                'user' => $user,
+//            ]
+//        );
+//    }
     /**
      * Delete action.
      *
